@@ -4,11 +4,11 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
@@ -101,8 +101,8 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         if(!isEmpty(trans_EditText)){
 
             Toast.makeText(this,"Getting translations",Toast.LENGTH_LONG).show();
-        new SaveTheFeed().execute();
-          //  new getxmldata().execute();
+      //  new SaveTheFeed().execute();
+         new getxmldata().execute();
 
         }else{
             Toast.makeText(this,"Enter word/sentence to trasnlate ",Toast.LENGTH_SHORT).show();
@@ -134,7 +134,8 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
                     Toast.LENGTH_LONG).show();
 
             // Calls for the method doInBackground to execute
-            new getxmldata().execute();
+           new getxmldata().execute();
+         //  new SaveTheFeed().execute();
 
         } else {
 
@@ -193,6 +194,57 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         }
 
     }
+
+    public void click_refresh(View view) {
+        EditText translateEditText = (EditText) findViewById(R.id.editText);
+        translateEditText.setText("");
+    }
+
+    public void ExceptSpeechInput(View view) {
+
+        // Starts an Activity that will convert speech to text
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+
+        // Use a language model based on free-form speech recognition
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+
+        // Recognize speech based on the default speech of device
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+
+        // Prompt the user to speak
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
+                getString(R.string.speech_input_phrase));
+
+        try{
+
+            startActivityForResult(intent, 100);
+
+        } catch (ActivityNotFoundException e){
+
+            Toast.makeText(this, getString(R.string.stt_not_supported_message), Toast.LENGTH_LONG).show();
+
+        }
+
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+
+        // 100 is the request code sent by startActivityForResult
+        if((requestCode == 100) && (data != null) && (resultCode == RESULT_OK)){
+
+            // Store the data sent back in an ArrayList
+            ArrayList<String> spokenText = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+
+            EditText wordsEntered = (EditText) findViewById(R.id.editText);
+
+            // Put the spoken text in the EditText
+            wordsEntered.setText(spokenText.get(0));
+
+        }
+
+    }
+
     class getxmldata extends AsyncTask<Void,Void,Void>{
         String stringToPrint = "";
 
@@ -302,11 +354,6 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         }
     }
 
-
-
-
-
-
     class SaveTheFeed extends AsyncTask <Void ,Void,Void>{
 
 
@@ -324,8 +371,8 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
             words_Translate=words_Translate.replace(" ","+");
             DefaultHttpClient httpClient=new DefaultHttpClient(new BasicHttpParams());
                 //    HttpPost ht_Post = new HttpPost("http://tolksenct.bugs3.com/transapp.php?action=translations&english_words=" + words_Translate);
-         HttpPost ht_Post = new HttpPost("http://tolksenct.bugs3.com/translatapp.php?action=translations&english_words=" + words_Translate);
-           //HttpPost ht_Post = new HttpPost("http://newjustin.com/translateit.php?action=translations&english_words=" + words_Translate);
+        // HttpPost ht_Post = new HttpPost("http://tolksenct.bugs3.com/translatapp.php?action=translations&english_words=" + words_Translate);
+           HttpPost ht_Post = new HttpPost("http://newjustin.com/translateit.php?action=translations&english_words=" + words_Translate);
 
 
 
@@ -345,6 +392,7 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
 
                 }
                 jsonString= sb.toString();
+                Log.d("json",jsonString);
                 JSONObject JObject = new JSONObject(jsonString);
                 JSONArray jArray= JObject.getJSONArray("translations");
 
@@ -386,49 +434,5 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
 
 
         }
-    }
-
-    public void ExceptSpeechInput(View view) {
-
-        // Starts an Activity that will convert speech to text
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-
-        // Use a language model based on free-form speech recognition
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-
-        // Recognize speech based on the default speech of device
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-
-        // Prompt the user to speak
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
-                getString(R.string.speech_input_phrase));
-
-        try{
-
-            startActivityForResult(intent, 100);
-
-        } catch (ActivityNotFoundException e){
-
-            Toast.makeText(this, getString(R.string.stt_not_supported_message), Toast.LENGTH_LONG).show();
-
-        }
-
-    }
-    protected void onActivityResult(int requestCode, int resultCode, Intent data){
-
-        // 100 is the request code sent by startActivityForResult
-        if((requestCode == 100) && (data != null) && (resultCode == RESULT_OK)){
-
-            // Store the data sent back in an ArrayList
-            ArrayList<String> spokenText = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-
-            EditText wordsEntered = (EditText) findViewById(R.id.editText);
-
-            // Put the spoken text in the EditText
-            wordsEntered.setText(spokenText.get(0));
-
-        }
-
     }
 }
